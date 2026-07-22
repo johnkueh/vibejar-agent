@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
- * Compose assets/hero.png with Satori — real Space Grotesk + jar mark +
- * landing screenshots (not a generative mock).
+ * README hero — three-beat filmstrip (Fable design 2026-07-22).
+ * Real jar mark + Space Grotesk + landing screenshots.
  *
- *   node scripts/compose-hero.mjs
+ *   pnpm hero
  */
 import { readFile, writeFile } from "node:fs/promises";
 import { join, dirname } from "node:path";
@@ -11,6 +11,7 @@ import { fileURLToPath } from "node:url";
 import { createElement as h } from "react";
 import satori from "satori";
 import { Resvg } from "@resvg/resvg-js";
+import sharp from "sharp";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, "..");
@@ -21,9 +22,15 @@ const H = 630;
 const BG = "#0a0a0b";
 const FG = "#f3f3f1";
 const MUTED = "#c2c2be";
-const FAINT = "#8c8c88";
-const CARD = "#161618";
-const BORDER = "#26262b";
+const CARD = "#121214";
+const BORDER = "#26262a";
+
+const PAD = 48;
+const CARD_W = 332;
+const CARD_H = 342;
+const GAP = 36;
+const CHIP_H = 22;
+const CHIP_GAP = 10;
 
 async function loadFonts() {
   const [regular, bold] = await Promise.all([
@@ -33,16 +40,19 @@ async function loadFonts() {
   return [
     { name: "Space Grotesk", data: regular, weight: 400, style: "normal" },
     { name: "Space Grotesk", data: bold, weight: 700, style: "normal" },
+    // satori weight 500/600 → use 700 for numbers/labels (no 500/600 files)
   ];
 }
 
 async function loadPng(name) {
   const buf = await readFile(join(root, "assets/screenshots", name));
-  return `data:image/png;base64,${buf.toString("base64")}`;
+  return {
+    dataUrl: `data:image/png;base64,${buf.toString("base64")}`,
+    meta: await sharp(buf).metadata(),
+  };
 }
 
-/** Same jar paths as web/src/lib/og-shared.tsx */
-function JarIcon({ size = 40, color = FG }) {
+function JarIcon({ size = 28, color = FG }) {
   return h(
     "svg",
     {
@@ -73,65 +83,144 @@ function JarIcon({ size = 40, color = FG }) {
   );
 }
 
-function Phone({ src, width = 200 }) {
-  const height = Math.round(width * (2556 / 1180));
+/**
+ * Portrait screenshot cropped into a fixed card.
+ * topFrac: negative crop as fraction of scaled image height (Fable anchors).
+ */
+function ShotCard({ src, imgW, imgH, topFrac }) {
+  const scaledH = Math.round(CARD_W * (imgH / imgW));
+  const top = Math.round(-topFrac * scaledH);
   return h(
     "div",
     {
       style: {
         display: "flex",
-        width,
-        height,
-        borderRadius: 28,
-        border: `6px solid ${BORDER}`,
+        width: CARD_W,
+        height: CARD_H,
+        borderRadius: 16,
+        border: `1px solid ${BORDER}`,
         background: CARD,
         overflow: "hidden",
-        boxShadow: "0 24px 60px rgba(0,0,0,0.55)",
+        position: "relative",
       },
     },
     h("img", {
       src,
-      width: width - 12,
-      height: height - 12,
+      width: CARD_W,
+      height: scaledH,
       style: {
-        objectFit: "cover",
-        objectPosition: "top center",
+        position: "absolute",
+        left: 0,
+        top,
       },
     })
   );
 }
 
-function Pill({ children, invert = false }) {
+function Beat({ n, label, src, imgW, imgH, topFrac }) {
+  return h(
+    "div",
+    {
+      style: {
+        display: "flex",
+        flexDirection: "column",
+        width: CARD_W,
+      },
+    },
+    h(
+      "div",
+      {
+        style: {
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          height: CHIP_H,
+          marginBottom: CHIP_GAP,
+        },
+      },
+      h(
+        "span",
+        {
+          style: {
+            color: FG,
+            fontSize: 15,
+            fontWeight: 700,
+            letterSpacing: "0.01em",
+          },
+        },
+        n
+      ),
+      h(
+        "span",
+        {
+          style: {
+            color: MUTED,
+            fontSize: 15,
+            fontWeight: 400,
+            letterSpacing: "0.01em",
+          },
+        },
+        label
+      )
+    ),
+    h(ShotCard, { src, imgW, imgH, topFrac })
+  );
+}
+
+function Arrow() {
   return h(
     "div",
     {
       style: {
         display: "flex",
         alignItems: "center",
-        background: invert ? FG : CARD,
-        border: invert ? "none" : `1px solid ${BORDER}`,
-        borderRadius: 999,
-        color: invert ? BG : FG,
-        fontSize: 15,
-        fontWeight: 700,
-        letterSpacing: "-0.02em",
-        padding: "10px 16px",
+        justifyContent: "center",
+        width: GAP,
+        // chip row + gap + half card so arrow sits on card midline
+        height: CHIP_H + CHIP_GAP + CARD_H,
+        color: MUTED,
+        opacity: 0.55,
+        fontSize: 22,
+        fontWeight: 400,
       },
     },
-    children
+    "→"
   );
 }
 
 async function main() {
   const fonts = await loadFonts();
-  const [annotate, ios, pr] = await Promise.all([
+  const [a, b, c] = await Promise.all([
     loadPng("annotate-frame.png"),
-    loadPng("ios-poster.png"),
+    loadPng("claude-mobile-frame.png"),
     loadPng("github-pr.png"),
   ]);
 
-  const phoneW = 198;
-  const phoneH = Math.round(phoneW * (2556 / 1180));
+  // Fable crop fractions (of scaled image height)
+  const beats = [
+    {
+      n: "01",
+      label: "Circle the bug",
+      shot: a,
+      topFrac: 0.115,
+    },
+    {
+      n: "02",
+      label: "Your agent claims it",
+      shot: b,
+      topFrac: 0.055,
+    },
+    {
+      n: "03",
+      label: "Fix merged, with proof",
+      shot: c,
+      // slightly deeper crop to surface BEFORE/AFTER + claude comment
+      topFrac: 0.18,
+    },
+  ];
+
+  const filmstripW = 3 * CARD_W + 2 * GAP; // 1068
+  const sideSlack = Math.floor((W - 2 * PAD - filmstripW) / 2);
 
   const tree = h(
     "div",
@@ -140,191 +229,191 @@ async function main() {
         width: W,
         height: H,
         display: "flex",
+        flexDirection: "column",
         background: BG,
         fontFamily: "Space Grotesk",
+        border: `1px solid ${BORDER}`,
         position: "relative",
-        overflow: "hidden",
       },
     },
-    h("div", {
-      style: {
-        position: "absolute",
-        right: -80,
-        top: -80,
-        width: 420,
-        height: 420,
-        borderRadius: 420,
-        background: "#161618",
-        opacity: 0.9,
-        display: "flex",
-      },
-    }),
-    h("div", {
-      style: {
-        position: "absolute",
-        left: -120,
-        bottom: -140,
-        width: 360,
-        height: 360,
-        borderRadius: 360,
-        background: "#121214",
-        display: "flex",
-      },
-    }),
-    // left copy
+    // Header
     h(
       "div",
       {
         style: {
           display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          padding: "48px 40px 48px 64px",
-          width: 520,
-          height: "100%",
-          position: "relative",
+          alignItems: "center",
+          justifyContent: "space-between",
+          height: 40,
+          marginTop: PAD,
+          marginLeft: PAD,
+          marginRight: PAD,
         },
       },
       h(
         "div",
-        { style: { display: "flex", alignItems: "center", gap: 14 } },
-        h(JarIcon, { size: 44, color: FG }),
+        { style: { display: "flex", alignItems: "center", gap: 10 } },
+        h(JarIcon, { size: 28, color: FG }),
         h(
-          "span",
-          {
-            style: {
-              color: FG,
-              fontSize: 36,
-              fontWeight: 700,
-              letterSpacing: "-0.04em",
+          "div",
+          { style: { display: "flex", alignItems: "baseline", gap: 8 } },
+          h(
+            "span",
+            {
+              style: {
+                color: FG,
+                fontSize: 22,
+                fontWeight: 700,
+                letterSpacing: "-0.03em",
+              },
             },
-          },
-          "vibejar"
+            "vibejar"
+          ),
+          h(
+            "span",
+            {
+              style: {
+                color: MUTED,
+                fontSize: 18,
+                fontWeight: 400,
+                letterSpacing: "-0.02em",
+              },
+            },
+            "/ agent"
+          )
         )
       ),
       h(
-        "div",
+        "span",
         {
           style: {
-            display: "flex",
-            flexDirection: "column",
-            marginTop: 36,
-            fontSize: 42,
-            fontWeight: 700,
-            letterSpacing: "-0.035em",
-            lineHeight: 1.08,
-          },
-        },
-        h(
-          "span",
-          {
-            style: {
-              color: MUTED,
-              display: "flex",
-              whiteSpace: "nowrap",
-            },
-          },
-          "The screenshot tool that"
-        ),
-        h(
-          "span",
-          {
-            style: {
-              color: "#ffffff",
-              display: "flex",
-              whiteSpace: "nowrap",
-            },
-          },
-          "fixes bugs"
-        )
-      ),
-      h(
-        "div",
-        {
-          style: {
-            color: FAINT,
-            display: "flex",
-            fontSize: 20,
+            color: MUTED,
+            fontSize: 15,
             fontWeight: 400,
             letterSpacing: "-0.01em",
-            lineHeight: 1.4,
-            marginTop: 22,
-            maxWidth: 420,
           },
         },
-        "MIT agent CLI + skill. Capture app is $88 once."
-      ),
-      h(
-        "div",
-        { style: { display: "flex", gap: 10, marginTop: 28 } },
-        h(Pill, null, "Open agent · MIT"),
-        h(Pill, { invert: true }, "App $88 once")
+        "agent CLI + skill + protocol — MIT"
       )
     ),
-    // right phones
+    // Headline
     h(
       "div",
       {
         style: {
           display: "flex",
-          flex: 1,
-          alignItems: "center",
-          justifyContent: "flex-end",
-          paddingRight: 56,
-          paddingTop: 40,
-          height: "100%",
-          position: "relative",
+          alignItems: "baseline",
+          gap: 10,
+          height: 46,
+          marginTop: 24,
+          marginLeft: PAD,
+          marginRight: PAD,
+          whiteSpace: "nowrap",
         },
       },
       h(
-        "div",
+        "span",
         {
           style: {
-            display: "flex",
-            alignItems: "flex-end",
-            height: phoneH + 20,
-            position: "relative",
-            width: phoneW * 2.35,
+            color: MUTED,
+            fontSize: 36,
+            fontWeight: 700,
+            letterSpacing: "-0.03em",
           },
         },
-        h(
-          "div",
-          {
-            style: {
-              display: "flex",
-              position: "absolute",
-              left: 0,
-              bottom: 24,
-              opacity: 0.92,
-            },
+        "Screenshot a bug."
+      ),
+      h(
+        "span",
+        {
+          style: {
+            color: "#ffffff",
+            fontSize: 36,
+            fontWeight: 700,
+            letterSpacing: "-0.03em",
           },
-          h(Phone, { src: annotate, width: phoneW - 18 })
-        ),
-        h(
-          "div",
-          {
-            style: {
-              display: "flex",
-              position: "absolute",
-              right: 0,
-              bottom: 24,
-              opacity: 0.92,
-            },
+        },
+        "Your agent ships the fix."
+      )
+    ),
+    // Filmstrip
+    h(
+      "div",
+      {
+        style: {
+          display: "flex",
+          flexDirection: "row",
+          alignItems: "flex-start",
+          marginTop: 28,
+          marginLeft: PAD + sideSlack,
+          height: CHIP_H + CHIP_GAP + CARD_H,
+        },
+      },
+      h(Beat, {
+        n: beats[0].n,
+        label: beats[0].label,
+        src: beats[0].shot.dataUrl,
+        imgW: beats[0].shot.meta.width,
+        imgH: beats[0].shot.meta.height,
+        topFrac: beats[0].topFrac,
+      }),
+      h(Arrow),
+      h(Beat, {
+        n: beats[1].n,
+        label: beats[1].label,
+        src: beats[1].shot.dataUrl,
+        imgW: beats[1].shot.meta.width,
+        imgH: beats[1].shot.meta.height,
+        topFrac: beats[1].topFrac,
+      }),
+      h(Arrow),
+      h(Beat, {
+        n: beats[2].n,
+        label: beats[2].label,
+        src: beats[2].shot.dataUrl,
+        imgW: beats[2].shot.meta.width,
+        imgH: beats[2].shot.meta.height,
+        topFrac: beats[2].topFrac,
+      })
+    ),
+    // Footer
+    h(
+      "div",
+      {
+        style: {
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginTop: "auto",
+          marginBottom: PAD,
+          marginLeft: PAD,
+          marginRight: PAD,
+          height: 20,
+        },
+      },
+      h(
+        "span",
+        {
+          style: {
+            color: MUTED,
+            fontSize: 14,
+            fontWeight: 400,
+            letterSpacing: "-0.01em",
           },
-          h(Phone, { src: pr, width: phoneW - 18 })
-        ),
-        h(
-          "div",
-          {
-            style: {
-              display: "flex",
-              position: "absolute",
-              left: phoneW * 0.48,
-              bottom: 0,
-            },
+        },
+        "vibejar.com"
+      ),
+      h(
+        "span",
+        {
+          style: {
+            color: MUTED,
+            fontSize: 14,
+            fontWeight: 400,
+            letterSpacing: "-0.01em",
           },
-          h(Phone, { src: ios, width: phoneW + 8 })
-        )
+        },
+        "capture app — $88 once"
       )
     )
   );
