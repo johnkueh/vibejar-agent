@@ -1,20 +1,29 @@
-# Vibejar agent
+<p align="center">
+  <img src="assets/hero.png" alt="Vibejar — screenshot a bug on your phone, your coding agent ships the fix" width="1100" />
+</p>
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Homepage](https://img.shields.io/badge/app-vibejar.com-111)](https://vibejar.com)
+**Vibejar agent** is the open MIT surface for [Vibejar](https://vibejar.com): CLI + Agent Skill + protocol so Claude Code, Codex, Cursor, and friends can claim screenshot bugs from a jar, ship a fix, and report proof.
 
-Screenshot a bug on your phone. Your coding agent picks it up, ships the fix, and sends back proof.
+The capture app is paid — **$88 once**, forever. Everything your agent touches in this repo stays free and open. No subscription, no seats, no open-core upsell.
 
-**Vibejar is a paid app — $88, once, yours forever.** The agent side is open source: the CLI, the skill, and the protocol your agent uses to claim and fix bugs are MIT, in this repo. Same deal as Sublime Text and Alfred — you buy the tool, the ecosystem around it stays open. No subscription, no seats, no open-core upsell. The app captures the bug; everything your agent touches is code you can read.
+<p align="center">
+  <a href="https://vibejar.com"><strong>Get the app</strong></a>
+  ·
+  <a href="https://vibejar.com/connect.md"><strong>Connect an agent</strong></a>
+  · MIT · Claude Code · Codex · Cursor · Grok
+</p>
 
-- **App (paid):** [vibejar.com](https://vibejar.com) — iPhone capture + annotate + jar queue  
-- **Agent (this repo, free MIT):** CLI + [Agent Skill](https://agentskills.io) + protocol  
+## What it does
 
-Works with Claude Code, Codex, Cursor, Grok Build, and any tool that loads Agent Skills.
+- **Phone captures the bug.** Circle what’s wrong in the app; it lands in a jar.
+- **Agent works the queue.** `list` open captures, `claim` one, fix from the annotated shot, open a PR, mark status.
+- **One install for every agent.** CLI + [Agent Skills](https://agentskills.io) skill (Claude / Grok / Codex / Cursor discovery paths).
+- **Stable contract.** Commands and shapes don’t thrash — see [`contract.md`](./contract.md).
+- **Self-updating.** `self-update` re-pulls CLI + skill from vibejar.com so sessions stay current.
 
-## Install (agents + humans)
+## Install
 
-One shot (recommended — always pulls the live bits from vibejar.com):
+One shot (recommended):
 
 ```sh
 curl -fsSL https://vibejar.com/install.sh | bash
@@ -28,7 +37,7 @@ That installs:
 | Skill (canonical) | `~/.agents/skills/vibejar/SKILL.md` |
 | Symlinks | Claude / Grok / Codex / Cursor skill dirs when present |
 
-Requires [bun](https://bun.sh) (installer adds it if missing).
+Requires [bun](https://bun.sh) — the installer adds it if missing.
 
 Verify:
 
@@ -44,76 +53,99 @@ bun ~/.vibejar/cli.ts self-update
 curl -fsSL https://vibejar.com/install.sh | bash -s -- --update
 ```
 
-### From this repo (optional)
+Point an agent at setup with:
 
-```sh
-git clone https://github.com/johnkueh/vibejar-agent.git
-cd vibejar-agent
-# install script still prefers production CDN; override for local testing:
-VIBEJAR_BASE_URL=https://vibejar.com ./install.sh
+```text
+Read https://vibejar.com/connect.md and set up Vibejar.
 ```
-
-Production install always uses `https://vibejar.com` so self-update stays simple. This GitHub repo is the **open, reviewable source** of the agent surface.
 
 ## Pair with the phone app
 
-In the app, open pair mode and run:
+In the app, open pair mode, then:
 
 ```sh
 bun ~/.vibejar/cli.ts pair <token> --name "Claude Code"
 ```
 
-Or use a shared jar link (`https://vibejar.com/j/<slug>`) — `fork` mints an identity.
+Or use a shared jar link (`https://vibejar.com/j/<slug>`) — `fork` mints an identity with no pair step.
 
-## How agents work a jar
+## Working a jar
 
 ```sh
 bun ~/.vibejar/cli.ts self-update   # once per session
 bun ~/.vibejar/cli.ts jars
 bun ~/.vibejar/cli.ts list [jar]
-bun ~/.vibejar/cli.ts claim <id>    # one capture → note + local screenshot path
+bun ~/.vibejar/cli.ts claim <id>    # note + local screenshot path
 # fix in the right repo, open one PR
 bun ~/.vibejar/cli.ts status <id> review --pr <url>
 ```
 
-Stable contract: [`contract.md`](./contract.md) · Human connect page: [vibejar.com/connect.md](https://vibejar.com/connect.md)
+Rules that matter:
 
-## What's open vs closed
+1. **List first, claim second** — never batch-claim blind.
+2. **One claim at a time** — the one you’re fixing now.
+3. **Image first** — the annotated screenshot is ground truth.
+4. **One PR per fix** — don’t bag unrelated captures.
+5. Mistaken claim → `status <id> todo` immediately.
+
+Full agent rules live in [`skill/SKILL.md`](./skill/SKILL.md). Human-oriented setup: [connect.md](./connect.md) / [vibejar.com/connect.md](https://vibejar.com/connect.md).
+
+## Open vs closed
 
 | Open (MIT, this repo) | Closed |
 |----------------------|--------|
-| CLI (`cli.ts`) | iOS/Android capture app |
-| Agent skill (`skill/SKILL.md`) | Landing site (`web/`) |
+| CLI (`cli.ts`) | iOS / Android capture app |
+| Agent skill | Landing site |
 | Protocol (`contract.md`) | Jar backend / cloud |
 | Installer (`install.sh`) | App Store / RevenueCat billing |
 
-## Repo layout
-
-```
-cli.ts          # agent CLI (also served at vibejar.com/cli.ts)
-install.sh      # one-shot installer
-skill/SKILL.md  # Agent Skills package
-contract.md     # stable CLI + jar contract
-connect.md      # human/agent setup doc
-examples/       # sample workflows
-```
+Same shape as Sublime Text or Alfred for years: **you buy the tool, the ecosystem around it stays open.**
 
 ## Pricing
 
 **$88 one-time** for the capture app. Forever unlock. No subscription.
 
-The agent integration stays free so every coding agent can work jars without friction.
+The agent integration is free so every coding agent can work jars without friction. Buy: [vibejar.com](https://vibejar.com).
+
+## Repo layout
+
+```
+cli.ts           # agent CLI (also served at vibejar.com/cli.ts)
+install.sh       # one-shot installer
+skill/SKILL.md   # Agent Skills package
+contract.md      # stable CLI + jar contract
+connect.md       # setup doc for humans and agents
+examples/        # sample workflows
+assets/hero.png  # README cover
+```
+
+Production install always pulls from `https://vibejar.com` so self-update stays simple. This GitHub repo is the **reviewable source** of the agent surface.
+
+## From this clone (optional)
+
+```sh
+git clone https://github.com/johnkueh/vibejar-agent.git
+cd vibejar-agent
+# end users should still use the production installer:
+curl -fsSL https://vibejar.com/install.sh | bash
+```
 
 ## Contributing
 
-PRs welcome on the **agent surface** only (CLI, skill, protocol docs, examples). Keep the contract stable — see `contract.md`. App and backend live in a private monorepo.
+PRs welcome on the **agent surface** only (CLI, skill, protocol docs, examples). Keep the command shapes in `contract.md` stable. App and backend live in a private monorepo — don’t open PRs against App Store / paywall / cloud here.
 
-## Links
+See [CONTRIBUTING.md](./CONTRIBUTING.md).
 
-- App & marketing: https://vibejar.com  
-- Connect (for agents): https://vibejar.com/connect.md  
-- Best Claude Code plugins (roundup): https://vibejar.com/best/claude-code-plugins  
-- Vibe debugging guide: https://vibejar.com/guides/vibe-debugging  
+## More
+
+- App & marketing: [vibejar.com](https://vibejar.com)
+- Connect: [vibejar.com/connect.md](https://vibejar.com/connect.md)
+- Vibe debugging guide: [vibejar.com/guides/vibe-debugging](https://vibejar.com/guides/vibe-debugging)
+- Claude Code plugins roundup: [vibejar.com/best/claude-code-plugins](https://vibejar.com/best/claude-code-plugins)
+
+## Privacy / network
+
+The CLI talks to Vibejar’s backend (resolved via `https://vibejar.com/.well-known/vibejar.json`), downloads claim screenshots, and can re-fetch itself on `self-update`. Credentials live at `~/.config/vibejar/token` (mode 0600). See the security note at the top of `cli.ts`.
 
 ## License
 
