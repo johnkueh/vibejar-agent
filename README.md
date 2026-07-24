@@ -65,13 +65,13 @@ This repository is also a plugin marketplace for Claude and Codex. The plugin
 adds the existing Vibejar skill; on first use, that skill installs or updates
 the same CLI at `~/.vibejar/cli.ts`.
 
-For Claude Code, add `johnkueh/vibejar-agent` as a plugin marketplace, then
-install `vibejar-agent@vibejar`. The same Claude plugin can be uploaded to
-Claude Cowork as a custom plugin.
+For Claude Code or Cowork, open **Customize → Plugins**, choose **Add → Add
+marketplace → Add from a repository**, and sync `johnkueh/vibejar-agent`.
+Install Vibejar, then start a new session.
 
-For Codex, add `johnkueh/vibejar-agent` as a plugin marketplace, then install
-`vibejar-agent@vibejar` from the Codex plugin browser or CLI. Start a new task
-after installation so the Vibejar skill is available.
+For Codex, run `codex plugin marketplace add johnkueh/vibejar-agent`, then
+`codex plugin add vibejar-agent@vibejar`. Start a new task after installation
+so the Vibejar skill is available.
 
 The plugin does not add an MCP server or another authentication flow. Pairing,
 credentials, commands, and self-update continue to use the existing local CLI.
@@ -129,8 +129,8 @@ The agent integration is free so every coding agent can work jars without fricti
 ```
 cli.ts           # agent CLI (also served at vibejar.com/cli.ts)
 install.sh       # one-shot installer
-skill/SKILL.md   # Agent Skills package
-skills -> skill  # plugin-compatible skill discovery path
+skill/SKILL.md   # standalone installer copy
+skills/vibejar/  # plugin-compatible Agent Skills package
 .claude-plugin/  # Claude plugin manifest and marketplace
 .codex-plugin/   # Codex plugin manifest
 .agents/plugins/ # Codex marketplace

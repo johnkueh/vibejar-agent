@@ -13,6 +13,7 @@
 set -euo pipefail
 
 BASE_URL="${VIBEJAR_BASE_URL:-https://vibejar.com}"
+SOURCE_DIR="${VIBEJAR_SOURCE_DIR:-}"
 HOME_DIR="${HOME:-$(eval echo ~)}"
 VIBEJAR_DIR="${HOME_DIR}/.vibejar"
 AGENTS_SKILL_DIR="${HOME_DIR}/.agents/skills/vibejar"
@@ -39,9 +40,27 @@ need_cmd() {
   }
 }
 
-need_cmd curl
 need_cmd mkdir
 need_cmd ln
+need_cmd cp
+[ -n "${SOURCE_DIR}" ] || need_cmd curl
+
+install_file() {
+  local source_path="$1"
+  local remote_path="$2"
+  local destination="$3"
+
+  if [ -n "${SOURCE_DIR}" ]; then
+    if [ ! -f "${SOURCE_DIR}/${source_path}" ]; then
+      echo "error: missing ${SOURCE_DIR}/${source_path}" >&2
+      exit 1
+    fi
+    cp "${SOURCE_DIR}/${source_path}" "${destination}.tmp"
+  else
+    curl -fsSL "${BASE_URL}/${remote_path}" -o "${destination}.tmp"
+  fi
+  mv "${destination}.tmp" "${destination}"
+}
 
 if ! command -v bun >/dev/null 2>&1; then
   echo "note: bun not found — installing bun (https://bun.sh)…"
@@ -54,8 +73,7 @@ fi
 mkdir -p "${VIBEJAR_DIR}" "${AGENTS_SKILL_DIR}"
 
 echo "→ CLI  ${CLI_PATH}"
-curl -fsSL "${BASE_URL}/cli.ts" -o "${CLI_PATH}.tmp"
-mv "${CLI_PATH}.tmp" "${CLI_PATH}"
+install_file "cli.ts" "cli.ts" "${CLI_PATH}"
 
 # Bun resolves @instantdb/core + fake-indexeddb from this package.json
 # (the CLI is one file but not zero-deps — keep deps pinned next to it).
@@ -77,8 +95,7 @@ echo "→ deps  ${VIBEJAR_DIR}/package.json"
 )
 
 echo "→ skill ${SKILL_PATH}"
-curl -fsSL "${BASE_URL}/skill/SKILL.md" -o "${SKILL_PATH}.tmp"
-mv "${SKILL_PATH}.tmp" "${SKILL_PATH}"
+install_file "skill/SKILL.md" "skill/SKILL.md" "${SKILL_PATH}"
 
 # Canonical skill dir is already AGENTS_SKILL_DIR (~/.agents/skills/vibejar).
 # Symlink that directory into agent-specific skill trees (never self-link).
@@ -139,8 +156,8 @@ echo "  CLI:   bun ${CLI_PATH} whoami"
 echo "  skill: ${SKILL_PATH}"
 echo "  update: bun ${CLI_PATH} self-update"
 echo
-echo "Pair from the phone app (optional):"
-echo "  bun ${CLI_PATH} pair <token> --name \"Claude Code\""
+echo "Pair with the phone app to access its jars:"
+echo "  bun ${CLI_PATH} pair <token> --name \"This coding agent\""
 echo
 # Soft verify
 if bun "${CLI_PATH}" whoami >/dev/null 2>&1; then
