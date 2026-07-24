@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "vibejar-agent",
+  "displayName": "Vibejar",
+  "version": "1.3.0",
+  "description": "Fix captured issues from the repository you’re working in.",
+  "author": {
+    "name": "Vibejar"
+  },
+  "homepage": "https://vibejar.com",
+  "repository": "https://github.com/johnkueh/vibejar-agent",
+  "license": "MIT",
+  "keywords": [
+    "debugging",
+    "screenshots",
+    "coding-agents"
+  ],
+  "skills": "./skills/"
+}

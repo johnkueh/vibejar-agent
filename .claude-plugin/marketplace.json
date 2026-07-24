@@ -1,0 +1,20 @@
+{
+  "name": "vibejar",
+  "owner": {
+    "name": "Vibejar"
+  },
+  "description": "Plugins for working with Vibejar captures.",
+  "plugins": [
+    {
+      "name": "vibejar-agent",
+      "source": "./",
+      "description": "Fix captured issues from the repository you’re working in.",
+      "category": "Developer Tools",
+      "tags": [
+        "debugging",
+        "screenshots",
+        "coding-agents"
+      ]
+    }
+  ]
+}
