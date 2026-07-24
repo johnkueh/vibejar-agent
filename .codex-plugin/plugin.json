@@ -1,0 +1,31 @@
+{
+  "name": "vibejar-agent",
+  "version": "1.3.0",
+  "description": "Fix captured issues from the repository you’re working in.",
+  "author": {
+    "name": "Vibejar",
+    "url": "https://vibejar.com"
+  },
+  "homepage": "https://vibejar.com",
+  "repository": "https://github.com/johnkueh/vibejar-agent",
+  "license": "MIT",
+  "keywords": [
+    "debugging",
+    "screenshots",
+    "coding-agents"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Vibejar",
+    "shortDescription": "Fix captures from the repository you’re working in.",
+    "longDescription": "List, claim, fix, and return issues captured with Vibejar.",
+    "developerName": "Vibejar",
+    "category": "Developer Tools",
+    "capabilities": [],
+    "websiteURL": "https://vibejar.com",
+    "defaultPrompt": [
+      "List my open Vibejar captures.",
+      "Fix the next Vibejar capture in this repository."
+    ]
+  }
+}

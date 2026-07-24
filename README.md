@@ -2,7 +2,7 @@
   <img src="assets/hero.png" alt="Vibejar — screenshot a bug on your phone, your coding agent ships the fix" width="1100" />
 </p>
 
-**Vibejar agent** is the open MIT surface for [Vibejar](https://vibejar.com): CLI + Agent Skill + protocol so Claude Code, Codex, Cursor, and friends can claim screenshot bugs from a jar, ship a fix, and report proof.
+**Vibejar agent** is the open MIT surface for [Vibejar](https://vibejar.com): CLI + Agent Skill + protocol so Claude Code, Claude Cowork, Codex, Cursor, and friends can claim screenshot bugs from a jar, ship a fix, and report proof.
 
 The capture app is paid — **$88 once**, forever. Everything your agent touches in this repo stays free and open. No subscription, no seats, no open-core upsell.
 
@@ -10,7 +10,7 @@ The capture app is paid — **$88 once**, forever. Everything your agent touches
   <a href="https://vibejar.com"><strong>Get the app</strong></a>
   ·
   <a href="https://vibejar.com/connect.md"><strong>Connect an agent</strong></a>
-  · MIT · Claude Code · Codex · Cursor · Grok
+  · MIT · Claude Code · Claude Cowork · Codex · Cursor · Grok
 </p>
 
 ## What it does
@@ -58,6 +58,23 @@ Point an agent at setup with:
 ```text
 Read https://vibejar.com/connect.md and set up Vibejar.
 ```
+
+### Install as a plugin
+
+This repository is also a plugin marketplace for Claude and Codex. The plugin
+adds the existing Vibejar skill; on first use, that skill installs or updates
+the same CLI at `~/.vibejar/cli.ts`.
+
+For Claude Code or Cowork, open **Customize → Plugins**, choose **Add → Add
+marketplace → Add from a repository**, and sync `johnkueh/vibejar-agent`.
+Install Vibejar, then start a new session.
+
+For Codex, run `codex plugin marketplace add johnkueh/vibejar-agent`, then
+`codex plugin add vibejar-agent@vibejar`. Start a new task after installation
+so the Vibejar skill is available.
+
+The plugin does not add an MCP server or another authentication flow. Pairing,
+credentials, commands, and self-update continue to use the existing local CLI.
 
 ## Pair with the phone app
 
@@ -112,7 +129,11 @@ The agent integration is free so every coding agent can work jars without fricti
 ```
 cli.ts           # agent CLI (also served at vibejar.com/cli.ts)
 install.sh       # one-shot installer
-skill/SKILL.md   # Agent Skills package
+skill/SKILL.md   # standalone installer copy
+skills/vibejar/  # plugin-compatible Agent Skills package
+.claude-plugin/  # Claude plugin manifest and marketplace
+.codex-plugin/   # Codex plugin manifest
+.agents/plugins/ # Codex marketplace
 contract.md      # stable CLI + jar contract
 connect.md       # setup doc for humans and agents
 examples/        # sample workflows
